@@ -1,0 +1,37 @@
+diff -up dstat-0.6.8/plugins/dstat_dbus.py.dbus dstat-0.6.8/plugins/dstat_dbus.py
+--- dstat-0.6.8/plugins/dstat_dbus.py.dbus	2007-05-12 06:09:45.000000000 +0200
++++ dstat-0.6.8/plugins/dstat_dbus.py	2008-09-16 13:26:32.000000000 +0200
+@@ -18,21 +18,23 @@ class dstat_dbus(dstat):
+         try:
+             global dbus
+             import dbus
+-            try:
+-                self.sysbus = dbus.Bus(dbus.Bus.TYPE_SYSTEM).get_service('org.freedesktop.DBus').get_object('/org/freedesktop/DBus', 'org.freedesktop.DBus')
+-                try:
+-                    self.sesbus = dbus.Bus(dbus.Bus.TYPE_SESSION).get_service('org.freedesktop.DBus').get_object('/org/freedesktop/DBus', 'org.freedesktop.DBus')
+-                except:
+-                    self.sesbus = None
+-            except:
+-                raise Exception, 'Unable to connect to dbus message bus'
+         except:
+             raise Exception, 'Needs python-dbus module'
++        try:
++            self.sysbus = dbus.Interface(dbus.SystemBus().get_object('org.freedesktop.DBus', '/org/freedesktop/DBus'), 'org.freedesktop.DBus')
++        except:
++            raise Exception, 'Unable to connect to dbus message bus'
++        try:
++            self.sesbus = dbus.Interface(dbus.SessionBus().get_object('org.freedesktop.DBus', '/org/freedesktop/DBus'), 'org.freedesktop.DBus')
++        except:
++            self.sesbus = None
++
++        return True
+ 
+     def extract(self):
+-        self.val['system'] = len(self.sysbus.ListServices()) - 1
++        self.val['system'] = len(self.sysbus.ListNames()) - 1
+         try:
+-            self.val['session'] = len(self.sesbus.ListServices()) - 1
++            self.val['session'] = len(self.sesbus.ListNames()) - 1
+         except:
+             self.val['session'] = -1
+ #       print dir(b); print dir(s); print dir(d); print d.ListServices()
